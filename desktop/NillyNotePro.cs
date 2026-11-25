@@ -36,8 +36,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("NillyNote Pro")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 Nilly graphics (Sotiris Christos) — https://nillygraphics.com/")]
 [assembly: AssemblyTrademark("Nilly graphics / Nillygraphics — Sotiris Christos")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.0.1.0")]
+[assembly: AssemblyFileVersion("1.0.1.0")]
 
 namespace NillyNotePro
 {
@@ -57,6 +57,18 @@ namespace NillyNotePro
         }
 
         [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+        [DllImport("kernel32.dll")] private static extern IntPtr GetCurrentProcess();
+        [DllImport("kernel32.dll")] private static extern bool SetProcessWorkingSetSize(IntPtr hProcess, IntPtr minSize, IntPtr maxSize);
+
+        public static void TrimMemory()
+        {
+            try
+            {
+                GC.Collect(GC.MaxGeneration, GCCollectionMode.Optimized, false);
+                SetProcessWorkingSetSize(GetCurrentProcess(), (IntPtr)(-1), (IntPtr)(-1));
+            }
+            catch { }
+        }
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
         [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -2371,7 +2383,9 @@ namespace NillyNotePro
                     ForwardToRunningInstance(args);
                     return 0;
                 }
-                Application.Run(new MainForm(args, false));
+                MainForm mf = new MainForm(args, false);
+                mf.Shown += delegate { Native.TrimMemory(); };
+                Application.Run(mf);
             }
             return 0;
         }
