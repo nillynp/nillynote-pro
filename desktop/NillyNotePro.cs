@@ -36,8 +36,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("NillyNote Pro")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 Nilly graphics (Sotiris Christos) — https://nillygraphics.com/")]
 [assembly: AssemblyTrademark("Nilly graphics / Nillygraphics — Sotiris Christos")]
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
 
 namespace NillyNotePro
 {
@@ -1035,6 +1035,13 @@ namespace NillyNotePro
             mFile.DropDownItems.Add(MkItem("Αποθήκευση ως...", Keys.Control | Keys.Shift | Keys.S, delegate { SaveActiveTab(true); }));
             mFile.DropDownItems.Add(MkItem("Αποθήκευση όλων", Keys.Control | Keys.Alt | Keys.S, delegate { SaveAllTabs(); }));
             mFile.DropDownItems.Add(MkItem("Επαναφόρτωση από δίσκο", Keys.None, delegate { ReloadActiveFromDisk(); }));
+            mFile.DropDownItems.Add(new ToolStripSeparator());
+            string codeExe = FindSiblingExe("NillyCodePro", "NillyCodePro.exe");
+            if (codeExe != null)
+                mFile.DropDownItems.Add(MkItem("</> Συνέχεια στο NillyCode Pro", Keys.None, delegate { SendActiveToCode(codeExe); }));
+            string filesExe = FindSiblingExe("NillyFilesPro", "NillyFilesPro.exe");
+            if (filesExe != null)
+                mFile.DropDownItems.Add(MkItem("📂 Άνοιγμα Φακέλου σε NillyFiles Pro", Keys.None, delegate { OpenActiveFolderInFiles(filesExe); }));
             mFile.DropDownItems.Add(new ToolStripSeparator());
             mFile.DropDownItems.Add(MkItem("Εκτύπωση...", Keys.Control | Keys.P, delegate { PrintActiveDocument(); }));
             mFile.DropDownItems.Add(new ToolStripSeparator());
@@ -2151,26 +2158,87 @@ namespace NillyNotePro
             }
         }
 
+        private static string FindSiblingExe(string folder, string exeName)
+        {
+            try
+            {
+                string appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"NillySuite\" + folder + @"\" + exeName);
+                if (File.Exists(appData)) return appData;
+                DirectoryInfo par = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\'));
+                if (par != null)
+                {
+                    string sib = Path.Combine(Path.Combine(par.FullName, folder), exeName);
+                    if (File.Exists(sib)) return sib;
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private void SendActiveToCode(string codeExe)
+        {
+            try
+            {
+                string path = null;
+                if (_activeIdx >= 0 && _activeIdx < _tabs.Count)
+                {
+                    NoteTab tab = _tabs[_activeIdx];
+                    if (!string.IsNullOrEmpty(tab.FilePath) && File.Exists(tab.FilePath)) path = tab.FilePath;
+                }
+                if (path == null)
+                {
+                    path = Path.Combine(Path.GetTempPath(), "NillyNote_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".txt");
+                    File.WriteAllText(path, _editor.Text ?? "", new UTF8Encoding(false));
+                }
+                Process.Start(new ProcessStartInfo(codeExe, "\"" + path + "\"") { WorkingDirectory = Path.GetDirectoryName(codeExe), UseShellExecute = true });
+            }
+            catch { }
+        }
+
+        private void OpenActiveFolderInFiles(string filesExe)
+        {
+            try
+            {
+                if (_activeIdx >= 0 && _activeIdx < _tabs.Count && !string.IsNullOrEmpty(_tabs[_activeIdx].FilePath))
+                {
+                    string dir = Path.GetDirectoryName(_tabs[_activeIdx].FilePath);
+                    if (!string.IsNullOrEmpty(dir) && Directory.Exists(dir))
+                        Process.Start(new ProcessStartInfo(filesExe, "\"" + dir + "\"") { WorkingDirectory = Path.GetDirectoryName(filesExe), UseShellExecute = true });
+                }
+            }
+            catch { }
+        }
+
         private void LoadSettings()
         {
             try
             {
-                if (!File.Exists(_settingsPath)) return;
-                string[] lines = File.ReadAllLines(_settingsPath, Encoding.UTF8);
-                for (int i = 0; i < lines.Length; i++)
+                string suiteTheme = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"NillySuite\suite.theme");
+                bool hasLocal = File.Exists(_settingsPath);
+                if (hasLocal)
                 {
-                    int eq = lines[i].IndexOf('=');
-                    if (eq <= 0) continue;
-                    string k = lines[i].Substring(0, eq).Trim();
-                    string v = lines[i].Substring(eq + 1).Trim();
-                    if (k == "DarkMode") _darkMode = (v == "1");
-                    else if (k == "WordWrap") _wordWrap = (v == "1");
-                    else if (k == "FontFamily" && v.Length > 0) _fontFamily = v;
-                    else if (k == "FontSize") { float fs; if (float.TryParse(v, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out fs)) _baseFontSize = Math.Max(8f, Math.Min(32f, fs)); }
-                    else if (k == "Zoom") { int z; if (int.TryParse(v, out z)) _zoomPercent = Math.Max(60, Math.Min(300, z)); }
-                    else if (k == "Width") { int w; if (int.TryParse(v, out w) && w >= 460) Width = w; }
-                    else if (k == "Height") { int h; if (int.TryParse(v, out h) && h >= 300) Height = h; }
-                    else if (k == "Recent" && File.Exists(v)) _recentFiles.Add(v);
+                    string[] lines = File.ReadAllLines(_settingsPath, Encoding.UTF8);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        int eq = lines[i].IndexOf('=');
+                        if (eq <= 0) continue;
+                        string k = lines[i].Substring(0, eq).Trim();
+                        string v = lines[i].Substring(eq + 1).Trim();
+                        if (k == "DarkMode") _darkMode = (v == "1");
+                        else if (k == "WordWrap") _wordWrap = (v == "1");
+                        else if (k == "FontFamily" && v.Length > 0) _fontFamily = v;
+                        else if (k == "FontSize") { float fs; if (float.TryParse(v, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out fs)) _baseFontSize = Math.Max(8f, Math.Min(32f, fs)); }
+                        else if (k == "Zoom") { int z; if (int.TryParse(v, out z)) _zoomPercent = Math.Max(60, Math.Min(300, z)); }
+                        else if (k == "Width") { int w; if (int.TryParse(v, out w) && w >= 460) Width = w; }
+                        else if (k == "Height") { int h; if (int.TryParse(v, out h) && h >= 300) Height = h; }
+                        else if (k == "Recent" && File.Exists(v)) _recentFiles.Add(v);
+                    }
+                }
+                if (File.Exists(suiteTheme) && (!hasLocal || File.GetLastWriteTimeUtc(suiteTheme) > File.GetLastWriteTimeUtc(_settingsPath)))
+                {
+                    string s = File.ReadAllText(suiteTheme, Encoding.ASCII).Trim();
+                    if (s.Equals("light", StringComparison.OrdinalIgnoreCase)) _darkMode = false;
+                    else if (s.Equals("dark", StringComparison.OrdinalIgnoreCase)) _darkMode = true;
                 }
             }
             catch { }
