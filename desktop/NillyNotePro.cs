@@ -36,8 +36,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("NillyNote Pro")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 Nilly graphics (Sotiris Christos) — https://nillygraphics.com/")]
 [assembly: AssemblyTrademark("Nilly graphics / Nillygraphics — Sotiris Christos")]
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.1.1.0")]
+[assembly: AssemblyFileVersion("1.1.1.0")]
 
 namespace NillyNotePro
 {
@@ -74,6 +74,13 @@ namespace NillyNotePro
         [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
         [DllImport("user32.dll")] public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref COPYDATASTRUCT lParam);
         [DllImport("dwmapi.dll")] private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+        [DllImport("uxtheme.dll", CharSet = CharSet.Unicode)] private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string pszSubIdList);
+
+        public static void SetDarkScrollbar(IntPtr hwnd, bool dark)
+        {
+            if (hwnd == IntPtr.Zero) return;
+            try { SetWindowTheme(hwnd, dark ? "DarkMode_Explorer" : "Explorer", null); } catch { }
+        }
 
         public static void SetDarkTitlebar(IntPtr hwnd, bool dark)
         {
@@ -109,19 +116,19 @@ namespace NillyNotePro
         {
             NoteTheme t = new NoteTheme();
             t.IsDark = true;
-            t.StripBg = Color.FromArgb(24, 24, 26);
-            t.TabInactiveBg = Color.FromArgb(24, 24, 26);
-            t.TabHoverBg = Color.FromArgb(36, 37, 41);
-            t.TabActiveBg = Color.FromArgb(39, 39, 42);
-            t.MenuBg = Color.FromArgb(32, 32, 35);
-            t.EditorBg = Color.FromArgb(39, 39, 42);
-            t.EditorFg = Color.FromArgb(240, 242, 245);
-            t.MutedFg = Color.FromArgb(156, 163, 175);
-            t.Border = Color.FromArgb(56, 58, 66);
-            t.Accent = Color.FromArgb(56, 189, 248);
-            t.StatusBg = Color.FromArgb(30, 30, 33);
-            t.InputBg = Color.FromArgb(28, 29, 33);
-            t.BtnHoverBg = Color.FromArgb(52, 54, 62);
+            t.StripBg = Color.FromArgb(20, 21, 25);       // #141519 Nilly Obsidian
+            t.TabInactiveBg = Color.FromArgb(20, 21, 25);
+            t.TabHoverBg = Color.FromArgb(32, 35, 42);
+            t.TabActiveBg = Color.FromArgb(29, 32, 38);   // #1D2026
+            t.MenuBg = Color.FromArgb(26, 28, 34);        // #1A1C22
+            t.EditorBg = Color.FromArgb(29, 32, 38);      // #1D2026
+            t.EditorFg = Color.FromArgb(240, 244, 250);
+            t.MutedFg = Color.FromArgb(148, 157, 174);
+            t.Border = Color.FromArgb(50, 54, 66);
+            t.Accent = Color.FromArgb(252, 150, 31);      // #FC961F Signature Nilly Amber
+            t.StatusBg = Color.FromArgb(26, 28, 34);      // #1A1C22
+            t.InputBg = Color.FromArgb(20, 21, 25);
+            t.BtnHoverBg = Color.FromArgb(44, 48, 58);
             return t;
         }
 
@@ -129,19 +136,19 @@ namespace NillyNotePro
         {
             NoteTheme t = new NoteTheme();
             t.IsDark = false;
-            t.StripBg = Color.FromArgb(236, 238, 242);
-            t.TabInactiveBg = Color.FromArgb(236, 238, 242);
-            t.TabHoverBg = Color.FromArgb(224, 228, 234);
+            t.StripBg = Color.FromArgb(236, 239, 245);
+            t.TabInactiveBg = Color.FromArgb(236, 239, 245);
+            t.TabHoverBg = Color.FromArgb(224, 229, 238);
             t.TabActiveBg = Color.FromArgb(255, 255, 255);
-            t.MenuBg = Color.FromArgb(247, 248, 250);
+            t.MenuBg = Color.FromArgb(247, 248, 251);
             t.EditorBg = Color.FromArgb(255, 255, 255);
-            t.EditorFg = Color.FromArgb(24, 24, 27);
-            t.MutedFg = Color.FromArgb(100, 110, 124);
-            t.Border = Color.FromArgb(218, 222, 230);
-            t.Accent = Color.FromArgb(2, 132, 199);
-            t.StatusBg = Color.FromArgb(244, 245, 248);
+            t.EditorFg = Color.FromArgb(22, 24, 30);
+            t.MutedFg = Color.FromArgb(95, 105, 120);
+            t.Border = Color.FromArgb(214, 220, 230);
+            t.Accent = Color.FromArgb(224, 118, 12);      // #E0760C Nilly Amber Light
+            t.StatusBg = Color.FromArgb(244, 246, 250);
             t.InputBg = Color.FromArgb(255, 255, 255);
-            t.BtnHoverBg = Color.FromArgb(226, 232, 240);
+            t.BtnHoverBg = Color.FromArgb(226, 232, 242);
             return t;
         }
     }
@@ -563,16 +570,21 @@ namespace NillyNotePro
                         // Cover bottom border under active tab so it merges seamlessly with menu/editor
                         using (Pen pCover = new Pen(Theme.TabActiveBg, 2f))
                             g.DrawLine(pCover, r.Left + 1, Height - 1, r.Right - 1, Height - 1);
-                        // Crisp thin accent indicator at top of active tab
-                        using (Pen pAcc = new Pen(Theme.Accent, 2f))
-                            g.DrawLine(pAcc, r.Left + 8, r.Top + 1, r.Right - 8, r.Top + 1);
+                        // Crisp Nilly Amber accent bar at top of active tab (twin of NillyCode Pro!)
+                        using (Pen pAcc = new Pen(Theme.Accent, 2.2f))
+                            g.DrawLine(pAcc, r.Left + 5, r.Top + 1, r.Right - 5, r.Top + 1);
                     }
                 }
+
+                // Colored file indicator dot (Amber active / Cyan inactive, matching NillyCode Pro)
+                Color dotCol = active ? Theme.Accent : (Theme.IsDark ? Color.FromArgb(102, 217, 239) : Color.FromArgb(14, 132, 168));
+                using (SolidBrush dbr = new SolidBrush(dotCol))
+                    g.FillEllipse(dbr, r.Left + 10, r.Top + (r.Height - 6) / 2 + 1, 6, 6);
 
                 // Title text
                 NoteTab tab = Tabs[i];
                 string title = (tab.IsDirty ? "● " : "") + tab.DisplayTitle;
-                Rectangle txtRect = new Rectangle(r.Left + 10, r.Top + 4, r.Width - 36, r.Height - 6);
+                Rectangle txtRect = new Rectangle(r.Left + 21, r.Top + 4, r.Width - 47, r.Height - 6);
                 Color fg = active ? Theme.EditorFg : Theme.MutedFg;
                 TextRenderer.DrawText(g, title, Font, txtRect, fg,
                     TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix | TextFormatFlags.SingleLine);
@@ -1110,6 +1122,10 @@ namespace NillyNotePro
 
             ToolStripMenuItem mHelp = new ToolStripMenuItem("Βοήθεια");
             mHelp.DropDownItems.Add(MkItem("Συντομεύσεις & Σχετικά με το NillyNote Pro", Keys.None, delegate { ShowAboutDialog(); }));
+            mHelp.DropDownItems.Add(MkItem("Όροι Χρήσης & Άδεια (MIT · 0 €)", Keys.None, delegate
+            {
+                try { Process.Start(new ProcessStartInfo("https://nillygraphics.com/terms-and-conditions/el/#free-software") { UseShellExecute = true }); } catch { }
+            }));
             mHelp.DropDownItems.Add(MkItem("Nilly graphics (Sotiris Christos) — nillygraphics.com", Keys.None, delegate
             {
                 try { Process.Start(new ProcessStartInfo("https://nillygraphics.com/") { UseShellExecute = true }); } catch { }
@@ -1266,6 +1282,8 @@ namespace NillyNotePro
             _editorHost.BackColor = _theme.EditorBg;
             _editor.BackColor = _theme.EditorBg;
             _editor.ForeColor = _theme.EditorFg;
+            if (_editor.IsHandleCreated) Native.SetDarkScrollbar(_editor.Handle, _darkMode);
+            else _editor.HandleCreated += delegate { Native.SetDarkScrollbar(_editor.Handle, _darkMode); };
             if (_editor.ContextMenuStrip != null)
             {
                 _editor.ContextMenuStrip.BackColor = _theme.MenuBg;
