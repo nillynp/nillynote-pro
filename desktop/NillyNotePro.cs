@@ -36,8 +36,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("NillyNote Pro")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 Nilly graphics (Sotiris Christos) — https://nillygraphics.com/")]
 [assembly: AssemblyTrademark("Nilly graphics / Nillygraphics — Sotiris Christos")]
-[assembly: AssemblyVersion("1.1.2.0")]
-[assembly: AssemblyFileVersion("1.1.2.0")]
+[assembly: AssemblyVersion("1.1.3.0")]
+[assembly: AssemblyFileVersion("1.1.3.0")]
 
 namespace NillyNotePro
 {
@@ -976,8 +976,8 @@ namespace NillyNotePro
             rightQuick.Padding = new Padding(0, 2, 6, 2);
 
             _btnQuickTheme = MakeMiniBtn("◐", "Εναλλαγή Dark / Light", 28, delegate { _darkMode = !_darkMode; ApplyTheme(); });
-            _btnQuickPin = MakeMiniBtn("📌", "Καρφίτσωμα επάνω (Ctrl+T)", 28, delegate { TogglePin(); });
-            _btnQuickFind = MakeMiniBtn("🔍", "Εύρεση (Ctrl+F)", 28, delegate { OpenFindBar(false); });
+            _btnQuickPin = MakeMiniBtn("↑", "Καρφίτσωμα επάνω (Ctrl+T)", 28, delegate { TogglePin(); });
+            _btnQuickFind = MakeMiniBtn("F", "Εύρεση (Ctrl+F)", 28, delegate { OpenFindBar(false); });
             rightQuick.Controls.Add(_btnQuickTheme);
             rightQuick.Controls.Add(_btnQuickPin);
             rightQuick.Controls.Add(_btnQuickFind);
@@ -1053,7 +1053,7 @@ namespace NillyNotePro
                 mFile.DropDownItems.Add(MkItem("</> Συνέχεια στο NillyCode Pro", Keys.None, delegate { SendActiveToCode(codeExe); }));
             string filesExe = FindSiblingExe("NillyFilesPro", "NillyFilesPro.exe");
             if (filesExe != null)
-                mFile.DropDownItems.Add(MkItem("📂 Άνοιγμα Φακέλου σε NillyFiles Pro", Keys.None, delegate { OpenActiveFolderInFiles(filesExe); }));
+                mFile.DropDownItems.Add(MkItem("Άνοιγμα Φακέλου σε NillyFiles Pro", Keys.None, delegate { OpenActiveFolderInFiles(filesExe); }));
             mFile.DropDownItems.Add(new ToolStripSeparator());
             mFile.DropDownItems.Add(MkItem("Εκτύπωση...", Keys.Control | Keys.P, delegate { PrintActiveDocument(); }));
             mFile.DropDownItems.Add(new ToolStripSeparator());
@@ -2026,7 +2026,7 @@ namespace NillyNotePro
         private void ShowAboutDialog()
         {
             MessageBox.Show(this,
-                "NillyNote Pro v1.1.2 — Ultra-Light Windows 11 Pro Notepad\r\n" +
+                "NillyNote Pro v1.1.3 — Ultra-Light Windows 11 Pro Notepad\r\n" +
                 "created by Nilly graphics (Sotiris Christos) — https://nillygraphics.com/\r\n\r\n" +
                 "Κύριες συντομεύσεις:\r\n" +
                 "• Ctrl+N / Ctrl+W : Νέα / Κλείσιμο καρτέλας (ή Μεσαίο κλικ)\r\n" +
