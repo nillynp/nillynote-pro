@@ -36,8 +36,8 @@ using System.Windows.Forms;
 [assembly: AssemblyProduct("NillyNote Pro")]
 [assembly: AssemblyCopyright("Copyright (c) 2026 Nilly graphics (Sotiris Christos) — https://nillygraphics.com/")]
 [assembly: AssemblyTrademark("Nilly graphics / Nillygraphics — Sotiris Christos")]
-[assembly: AssemblyVersion("1.1.1.0")]
-[assembly: AssemblyFileVersion("1.1.1.0")]
+[assembly: AssemblyVersion("1.1.2.0")]
+[assembly: AssemblyFileVersion("1.1.2.0")]
 
 namespace NillyNotePro
 {
@@ -975,7 +975,7 @@ namespace NillyNotePro
             rightQuick.WrapContents = false;
             rightQuick.Padding = new Padding(0, 2, 6, 2);
 
-            _btnQuickTheme = MakeMiniBtn("☀", "Εναλλαγή Dark / Light", 28, delegate { _darkMode = !_darkMode; ApplyTheme(); });
+            _btnQuickTheme = MakeMiniBtn("◐", "Εναλλαγή Dark / Light", 28, delegate { _darkMode = !_darkMode; ApplyTheme(); });
             _btnQuickPin = MakeMiniBtn("📌", "Καρφίτσωμα επάνω (Ctrl+T)", 28, delegate { TogglePin(); });
             _btnQuickFind = MakeMiniBtn("🔍", "Εύρεση (Ctrl+F)", 28, delegate { OpenFindBar(false); });
             rightQuick.Controls.Add(_btnQuickTheme);
@@ -1264,7 +1264,7 @@ namespace NillyNotePro
             _menu.ForeColor = _theme.EditorFg;
             _menu.Renderer = new Win11MenuRenderer(_theme);
 
-            _btnQuickTheme.Text = _darkMode ? "☀" : "🌙";
+            _btnQuickTheme.Text = "◐";
             foreach (Button b in new Button[] { _btnQuickFind, _btnQuickPin, _btnQuickTheme })
             {
                 b.BackColor = _theme.MenuBg;
@@ -2026,7 +2026,7 @@ namespace NillyNotePro
         private void ShowAboutDialog()
         {
             MessageBox.Show(this,
-                "NillyNote Pro v1.0 — Ultra-Light Windows 11 Pro Notepad\r\n" +
+                "NillyNote Pro v1.1.2 — Ultra-Light Windows 11 Pro Notepad\r\n" +
                 "created by Nilly graphics (Sotiris Christos) — https://nillygraphics.com/\r\n\r\n" +
                 "Κύριες συντομεύσεις:\r\n" +
                 "• Ctrl+N / Ctrl+W : Νέα / Κλείσιμο καρτέλας (ή Μεσαίο κλικ)\r\n" +
